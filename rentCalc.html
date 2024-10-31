@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 1 - Inserimento Prodotti</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 20px);
+            padding: 5px;
+            margin: 5px 0;
+        }
+
+        /* Modifiche richieste */
+        input::placeholder {
+            font-style: italic;
+            opacity: 0.6;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: green;
+            color: white;
+            border: none;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: darkgreen;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .icon-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon-btn:hover img {
+            opacity: 0.7;
+        }
+
+        .btn-modifica img {
+            filter: invert(45%) sepia(71%) saturate(3285%) hue-rotate(4deg) brightness(99%) contrast(102%);
+        }
+
+        .btn-rimuovi img {
+            filter: invert(30%) sepia(84%) saturate(3858%) hue-rotate(341deg) brightness(88%) contrast(101%);
+        }
+
+        .btn:disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Inserisci i prodotti che vuoi noleggiare tramite Focelda SpA</h2>
+
+    <label for="tipoOggetto">Tipo di oggetto:</label>
+    <input type="text" id="tipoOggetto" placeholder="ad esempio Notebook, Pc, Stampante, ecc">
+
+    <label for="marca">Marca:</label>
+    <input type="text" id="marca" placeholder="ad esempio Hp, Acer, Msi, ecc">
+
+    <label for="modello">Modello:</label>
+    <input type="text" id="modello" placeholder="ad esempio Elitebook 600 g1, Pro 5075, ecc">
+
+    <label for="quantita">Quantità:</label>
+    <input type="number" id="quantita" value="1">
+
+    <label for="prezzoUnita">Prezzo Unità (IVA esclusa):</label>
+    <input type="number" id="prezzoUnita" placeholder="Prezzo">
+
+    <button class="btn" id="aggiungiProdotto">Aggiungi Prodotto</button>
+
+    <h3>Prodotti aggiunti</h3>
+    <table id="productTable">
+        <thead>
+        <tr>
+            <th>Tipo di oggetto</th>
+            <th>Marca</th>
+            <th>Modello</th>
+            <th>Quantità</th>
+            <th>Prezzo Unità (IVA esclusa)</th>
+            <th>Totale</th>
+            <th>Azioni</th>
+        </tr>
+        </thead>
+        <tbody id="productList"></tbody>
+    </table>
+
+    <h3>Totale Prodotti: <span id="totaleProdotti">0</span> €</h3>
+<p>Per avanzamento richiesta importo minimo € 500,00 IVA esclusa</p>
+
+
+    <button class="btn" id="vaiDatiCliente" disabled>Prosegui alla raccolta dati del tuo cliente</button>
+</div>
+
+
+<script>
+    // Definizione delle variabili globali
+    let prodotti = [];
+    let totalPrice = 0;
+    let editIndex = null;
+
+    // Funzione per caricare i dati salvati nel localStorage all'avvio
+    function caricaDatiSalvati() {
+        const datiSalvati = JSON.parse(localStorage.getItem('prodotti')) || [];
+        prodotti = datiSalvati;
+        aggiornaTabellaProdotti();
+        calcolaTotaleProdotti();
+    }
+
+    // Funzione per aggiornare la tabella con i prodotti
+    function aggiornaTabellaProdotti() {
+        const productList = document.getElementById('productList');
+        productList.innerHTML = '';
+        prodotti.forEach((prodotto, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${prodotto.tipoOggetto}</td>
+                <td>${prodotto.marca}</td>
+                <td>${prodotto.modello}</td>
+                <td>${prodotto.quantita}</td>
+                <td>${prodotto.prezzoUnita.toFixed(2)} €</td>
+                <td>${prodotto.prezzoTotale.toFixed(2)} €</td>
+                <td>
+                    <button class="icon-btn btn-modifica" onclick="modificaProdotto(${index})">
+                        <img src="https://img.icons8.com/material-outlined/24/000000/edit--v1.png" alt="Modifica">
+                    </button>
+                    <button class="icon-btn btn-rimuovi" onclick="rimuoviProdotto(${index})">
+                        <img src="https://img.icons8.com/material-outlined/24/000000/delete-sign.png" alt="Rimuovi">
+                    </button>
+                </td>
+            `;
+            productList.appendChild(row);
+        });
+    }
+
+    // Funzione per calcolare il totale dei prodotti
+    function calcolaTotaleProdotti() {
+        totalPrice = prodotti.reduce((acc, prodotto) => acc + prodotto.prezzoTotale, 0);
+        document.getElementById('totaleProdotti').textContent = totalPrice.toFixed(2);
+        document.getElementById('vaiDatiCliente').disabled = !(totalPrice >= 500 && prodotti.length > 0);
+    }
+
+    // Funzione per pulire i campi di input dopo l'aggiunta o modifica
+    function pulisciCampiProdotto() {
+        document.getElementById('tipoOggetto').value = '';
+        document.getElementById('marca').value = '';
+        document.getElementById('modello').value = '';
+        document.getElementById('quantita').value = 1;
+        document.getElementById('prezzoUnita').value = '';
+    }
+
+    // Funzione per aggiungere o modificare un prodotto
+    document.getElementById('aggiungiProdotto').addEventListener('click', function () {
+        const tipoOggetto = document.getElementById('tipoOggetto').value;
+        const marca = document.getElementById('marca').value;
+        const modello = document.getElementById('modello').value;
+        const quantita = parseInt(document.getElementById('quantita').value);
+        const prezzoUnita = parseFloat(document.getElementById('prezzoUnita').value);
+
+        if (!tipoOggetto || !marca || !modello || !quantita || !prezzoUnita) {
+            alert('Inserisci tutti i dati del prodotto.');
+            return;
+        }
+
+        const prezzoTotale = prezzoUnita * quantita;
+
+        if (editIndex !== null) {
+            prodotti[editIndex] = { tipoOggetto, marca, modello, quantita, prezzoUnita, prezzoTotale };
+            editIndex = null;
+            document.getElementById('aggiungiProdotto').textContent = 'Aggiungi Prodotto';
+        } else {
+            prodotti.push({ tipoOggetto, marca, modello, quantita, prezzoUnita, prezzoTotale });
+        }
+
+        aggiornaTabellaProdotti();
+        calcolaTotaleProdotti();
+        pulisciCampiProdotto();
+
+        localStorage.setItem('prodotti', JSON.stringify(prodotti));
+        localStorage.setItem('totaleProdotti', totalPrice.toFixed(2));
+    });
+
+    // Funzione per rimuovere un prodotto dall'elenco
+    function rimuoviProdotto(index) {
+        prodotti.splice(index, 1);
+        aggiornaTabellaProdotti();
+        calcolaTotaleProdotti();
+        localStorage.setItem('prodotti', JSON.stringify(prodotti));
+        localStorage.setItem('totaleProdotti', totalPrice.toFixed(2));
+    }
+
+    // Funzione per modificare un prodotto
+    function modificaProdotto(index) {
+        const prodotto = prodotti[index];
+        document.getElementById('tipoOggetto').value = prodotto.tipoOggetto;
+        document.getElementById('marca').value = prodotto.marca;
+        document.getElementById('modello').value = prodotto.modello;
+        document.getElementById('quantita').value = prodotto.quantita;
+        document.getElementById('prezzoUnita').value = prodotto.prezzoUnita;
+        editIndex = index;
+        document.getElementById('aggiungiProdotto').textContent = 'Modifica Prodotto';
+    }
+
+    // Carica i dati salvati all'avvio della pagina
+    document.addEventListener('DOMContentLoaded', caricaDatiSalvati);
+
+    // Funzione per navigare alla pagina di raccolta dati cliente
+    document.getElementById('vaiDatiCliente').addEventListener('click', function () {
+        localStorage.setItem('prodotti', JSON.stringify(prodotti));
+        localStorage.setItem('totaleProdotti', totalPrice.toFixed(2));
+        window.location.href = 'dati-cliente.html';
+    });
+</script>
+
+</body>
+</html>

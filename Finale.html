@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 3 - Inserisci anche i tuoi Dati per Concludere la Richiesta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-gap: 20px;
+    }
+
+    input, button {
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+    }
+/* aggiungi questo blocco per gestire il margine dei campi specifici */
+  #email-utente, #recapito-cellulare {
+    margin-bottom: 20px; /* aumenta il valore per maggiore spazio */
+  }
+
+    button:hover {
+      background-color: darkgreen;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+      grid-column: 1 / 3;
+    }
+
+    .back-btn {
+      background-color: gray;
+      margin-top: 20px;
+      grid-column: 1 / 3;
+    }
+
+    .back-btn:hover {
+      background-color: darkgray;
+    }
+
+    .riepilogo-section {
+      margin-bottom: 30px;
+      text-align: center;
+      padding: 15px;
+      background-color: #eee;
+      border-radius: 5px;
+    }
+
+    .riepilogo-section h3 {
+      margin: 0;
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .riepilogo-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .input-error {
+      border: 2px solid red;
+      box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    }
+/* Stile per il bottone disabilitato */
+    button:disabled {
+        background-color: #cccccc; /* Grigio chiaro */
+        color: #666666; /* Grigio più scuro per il testo */
+        cursor: not-allowed; /* Cambia il cursore per segnalare che è disabilitato */
+    }
+/* Stile per la dicitura piccola e in corsivo */
+    .dicitura-piccola {
+      font-size: 12px;
+      font-style: italic;
+      color: #666;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Inserisci i tuoi Dati e Conferma la Richiesta</h2>
+    <div class="riepilogo-section">
+      <h3>Riepilogo della Richiesta</h3>
+      <p id="riepilogo-merci"></p>
+      <p>Totale Noleggio (IVA esclusa): <span id="totale-noleggio"></span></p>
+      <p>Numero di Rate: <span id="numero-rate"></span></p>
+      <p>Importo Rata (IVA esclusa): <span id="importo-rata"></span></p>
+
+    </div>
+
+    <div id="dati-utente-section">
+      <h2>Inserisci i tuoi Dati</h2>
+      <div class="grid-container">
+        <div>
+          <label for="azienda">Azienda:</label>
+          <input type="text" id="azienda" name="azienda" required>
+          <p class="error" id="azienda-error" style="display:none;"></p>
+        </div>
+
+        <div>
+          <label for="piva-utente">P.IVA:</label>
+          <input type="text" id="piva-utente" name="piva-utente" required minlength="11" maxlength="11">
+          <p class="error" id="piva-utente-error" style="display:none;"></p>
+        </div>
+
+        <div>
+          <label for="nome-firmatario">Nome del Firmatario:</label>
+          <input type="text" id="nome-firmatario" name="nome-firmatario" required>
+          <p class="error" id="nome-firmatario-error" style="display:none;"></p>
+        </div>
+
+        <div>
+          <label for="cognome-firmatario">Cognome del Firmatario:</label>
+          <input type="text" id="cognome-firmatario" name="cognome-firmatario" required>
+          <p class="error" id="cognome-firmatario-error" style="display:none;"></p>
+        </div>
+
+        <div>
+          <label for="email-utente">Email:</label>
+          <input type="email" id="email-utente" name="email-utente" required>
+          <p class="error" id="email-utente-error" style="display:none;"></p>
+        </div>
+
+        <div>
+          <label for="recapito-cellulare">Recapito Cellulare:</label>
+          <input type="tel" id="recapito-cellulare" name="recapito-cellulare" required>
+          <p class="error" id="recapito-cellulare-error" style="display:none;"></p>
+        </div>
+        <p class="error" id="error-message" style="display:none;"></p>
+      </div>
+
+      <button id="concludi-richiesta" disabled>Concludi Richiesta</button>
+    </div>
+
+    <button id="reset-btn" class="back-btn">Reset</button>
+    <input type="hidden" id="data-richiesta" name="data-richiesta">
+  </div>
+  
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function() {
+        emailjs.init("d4zGingKSOzHlyo4G");
+    })();
+  
+ document.addEventListener('DOMContentLoaded', function() {
+    var oggi = new Date();
+    var giorno = String(oggi.getDate()).padStart(2, '0');
+    var mese = String(oggi.getMonth() + 1).padStart(2, '0'); // I mesi sono da 0 a 11
+    var anno = oggi.getFullYear();
+    var dataRichiesta = giorno + '/' + mese + '/' + anno;
+    document.getElementById('data-richiesta').value = dataRichiesta;
+  // Log per verificare il contenuto di sessionStorage
+    console.log("Contenuto di sessionStorage su Finale.html:", sessionStorage);
+ 
+
+      
+// Recupera i dati dalla pagina precedente e aggiorna il riepilogo
+      var prodotti = JSON.parse(localStorage.getItem('prodotti')) || [];
+      var totaleNoleggio = localStorage.getItem('totaleProdotti') || '0,00';
+      var numeroRate = localStorage.getItem('numeroRate') || 'N/A';
+      var importoRata = localStorage.getItem('importoRata') || '0,00';
+
+      var riepilogoMerci = document.getElementById('riepilogo-merci');
+      if (prodotti.length > 0) {
+        prodotti.forEach(function(prodotto) {
+          var prodottoDettaglio = `${prodotto.quantita} x ${prodotto.tipoOggetto} (${prodotto.marca} - ${prodotto.modello}) - Totale: ${prodotto.prezzoTotale.toFixed(2)} €`;
+          var p = document.createElement('p');
+          p.textContent = prodottoDettaglio;
+          riepilogoMerci.appendChild(p);
+        });
+      } else {
+        riepilogoMerci.textContent = 'Nessuna merce inserita.';
+      }
+
+      var sommaProdotti = 0;
+      prodotti.forEach(function(prodotto) {
+        sommaProdotti += prodotto.prezzoTotale;
+      });
+
+      var ricaricoPartner = parseFloat(totaleNoleggio) - sommaProdotti;
+      var ricaricoSection = document.createElement('p');
+      ricaricoSection.textContent = 'Ricarico partner Focelda: ' + ricaricoPartner.toFixed(2) + ' €';
+      document.querySelector('.riepilogo-section').appendChild(ricaricoSection);
+
+// Aggiungi voce "Spese istruttoria: 50.00 €"
+      var speseIstruttoria = document.createElement('p');
+      speseIstruttoria.textContent = 'Spese istruttoria: 50.00 €';
+      document.querySelector('.riepilogo-section').appendChild(speseIstruttoria);
+      document.getElementById('numero-rate').textContent = numeroRate;
+      document.getElementById('importo-rata').textContent = importoRata;
+      document.getElementById('totale-noleggio').textContent = totaleNoleggio + ' €';
+
+// Aggiungi dicitura piccola e in corsivo come ultimo elemento
+      var dicituraPiccola = document.createElement('p');
+      dicituraPiccola.classList.add('dicitura-piccola');
+      dicituraPiccola.textContent = "* Rata noleggio mensile, fatturata anticipata da Grenke trimestralmente, non tiene conto del costo assicurazione";
+      document.querySelector('.riepilogo-section').appendChild(dicituraPiccola);
+
+
+      // Funzione per mostrare o nascondere i messaggi di errore
+      function mostraErrore(idCampo, condizione) {
+        const campo = document.getElementById(idCampo);
+        const errore = document.getElementById(idCampo + '-error');
+        if (condizione) {
+          campo.classList.add('input-error');
+          errore.style.display = 'block';
+          errore.textContent = 'Errore nel campo: ' + idCampo; // Personalizza il messaggio se necessario
+        } else {
+          campo.classList.remove('input-error');
+          errore.style.display = 'none';
+        }
+      }
+
+      // Modifica la funzione di validazione per i campi
+      function validaCampo(idCampo, pattern, minLength = 0) {
+        const campo = document.getElementById(idCampo);
+        const campoErrore = document.getElementById(`${idCampo}-error`);
+
+        // Controlla l'errore al momento del blur
+        campo.addEventListener('blur', function() {
+          const valore = this.value;
+          const condizioneErrore = valore.length < minLength || !pattern.test(valore);
+          mostraErrore(idCampo, condizioneErrore);
+        });
+
+        // Nascondi l'errore durante la digitazione
+        campo.addEventListener('input', function() {
+                    const valore = this.value;
+          const condizioneErrore = valore.length < minLength || !pattern.test(valore);
+
+          // Se il valore è corretto, rimuovi il messaggio e la classe di errore
+          if (!condizioneErrore) {
+              campoErrore.style.display = 'none'; // Nascondi il messaggio di errore
+              campo.classList.remove('input-error'); // Rimuovi la classe di errore
+          } else {
+              campo.classList.add('input-error'); // Aggiungi la classe di errore
+          }
+        });
+      }
+
+      // Esempio di utilizzo per i campi esistenti
+      validaCampo('azienda', /^[a-zA-Z0-9\s]+$/, 2);
+      validaCampo('piva-utente', /^\d{11}$/, 11);
+      validaCampo('nome-firmatario', /^[a-zA-Z\s]+$/, 2);
+      validaCampo('cognome-firmatario', /^[a-zA-Z\s]+$/, 2);
+      validaCampo('email-utente', /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 5);
+      validaCampo('recapito-cellulare', /^\d{9,}$/, 9);
+
+      // Controllo per disabilitare il bottone
+      function controllaCampi() {
+          const campi = [
+              'azienda', 'piva-utente', 'nome-firmatario', 
+              'cognome-firmatario', 'email-utente', 'recapito-cellulare'
+          ];
+          return campi.every(campo => !document.getElementById(campo).classList.contains('input-error') && document.getElementById(campo).value.trim() !== '');
+      }
+
+         // Disabilita il bottone inizialmente
+   document.getElementById('concludi-richiesta').disabled = true;
+
+   // Aggiungi ascoltatore di eventi per il cambiamento di stato dei campi
+   const campiInput = ['azienda', 'piva-utente', 'nome-firmatario', 'cognome-firmatario', 'email-utente', 'recapito-cellulare'];
+   campiInput.forEach(campo => {
+       document.getElementById(campo).addEventListener('input', function() {
+           document.getElementById('concludi-richiesta').disabled = !controllaCampi();
+       });
+   });
+
+// Recupera i file caricati dalla sessione
+const fileIds = ['visura', 'documento-rappresentante', 'bilancio'];
+let files = {};
+fileIds.forEach(id => {
+    const fileData = sessionStorage.getItem(id);
+    if (fileData) {
+        files[id] = fileData;
+    }
+});
+// Log per verificare il contenuto di sessionStorage
+console.log("Contenuto di sessionStorage:", sessionStorage);
+
+
+   // Aggiungi ascoltatore di eventi per il click su "Concludi Richiesta"
+   
+document.getElementById('concludi-richiesta').addEventListener('click', function() {
+
+	// Raccoglie la data della richiesta var dataRichiesta = 	document.getElementById('data-richiesta').value; 
+	
+    // Disabilita il bottone e cambia il colore
+    this.disabled = true;
+    this.style.backgroundColor = 'gray';
+    this.textContent = 'Invio in corso...';
+
+    // Raccoglie i valori dei campi esistenti
+    var azienda = document.getElementById('azienda').value;
+    var pivaUtente = document.getElementById('piva-utente').value;
+    var nomeFirmatario = document.getElementById('nome-firmatario').value;
+    var cognomeFirmatario = document.getElementById('cognome-firmatario').value;
+    var emailUtente = document.getElementById('email-utente').value;
+    var recapitoCellulare = document.getElementById('recapito-cellulare').value;
+
+	// Raccoglie la data della richiesta 
+	var dataRichiesta = document.getElementById('data-richiesta').value; 
+
+    // Raccoglie `riepilogoMerci` e `ricaricoPartner`
+    var riepilogoProdotti = document.getElementById('riepilogo-merci').innerText;
+    var ricaricoPartner = parseFloat(totaleNoleggio) - sommaProdotti;
+
+    // Crea l'oggetto `dati` da inviare sia a Zapier che a EmailJS
+    const dati = {
+        azienda: azienda.trim(),
+        piva_utente: pivaUtente.trim(),
+        nome_firmatario: nomeFirmatario.trim(),
+        cognome_firmatario: cognomeFirmatario.trim(),
+        email_utente: emailUtente.trim(),
+        recapito_cellulare: recapitoCellulare.trim(),
+        totale_noleggio: totaleNoleggio.toString().trim().replace(".", ",") + " €",
+        numero_rate: numeroRate.trim(),
+        importo_rata: importoRata.toString().trim().replace(".", ",") + " €",
+        ricarico_partner: ricaricoPartner.toFixed(2).toString().trim().replace(".", ",") + " €",
+        riepilogo_merci: riepilogoProdotti.trim(),
+        spese_istruttoria: "50.00 €",  // Nuovo parametro aggiunto
+	data_richiesta: dataRichiesta // Aggiungi la data della richiesta
+    };
+
+// Recupera i file in Base64 salvati in sessionStorage e aggiungili a `dati.files`
+const fileIds = ['visura', 'documento-rappresentante', 'bilancio'];
+let files = {};
+fileIds.forEach(id => {
+    const fileData = sessionStorage.getItem(id);
+    if (fileData) {
+        files[id] = fileData; // Aggiungi ogni file recuperato all'oggetto `files`
+    }
+});
+dati.files = files; // Aggiunge `files` come proprietà dell'oggetto `dati`
+
+
+
+// Invia i dati a Zapier con l'opzione `no-cors`
+fetch("https://hooks.zapier.com/hooks/catch/20544251/29rnttx/", {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify(dati)
+})
+.then(response => {
+    console.log("Dati inviati a Zapier con successo");
+})
+.catch(error => console.error("Errore durante l'invio dei dati a Zapier:", error));
+
+    // Invia i dati via EmailJS
+    emailjs.send("service_jagq2yx", "template_o476jte", dati)
+    .then(function(response) {
+        console.log('SUCCESS!', response.status, response.text);
+        alert('La tua richiesta è stata presa in carico, verrai contattato!');
+    }, function(error) {
+        console.log('FAILED...', error);
+        alert('Errore durante l\'invio della richiesta.');
+    })
+    .finally(() => {
+        setTimeout(() => {
+            document.getElementById('concludi-richiesta').disabled = false;
+            document.getElementById('concludi-richiesta').style.backgroundColor = 'green';
+            document.getElementById('concludi-richiesta').textContent = 'Concludi Richiesta';
+        }, 2000);
+    });
+});
+    
+      // Bottone Reset
+      document.getElementById('reset-btn').addEventListener('click', function() {
+          window.location.href = 'rentCalc.html';  // Torna alla pagina precedente
+      });
+    });
+  </script>
+
+</body>
+</html>
+
